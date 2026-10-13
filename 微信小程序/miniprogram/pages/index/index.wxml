@@ -17,28 +17,30 @@
   <text wx:if="{{lastUpdate}}" class="status-time">更新 {{lastUpdate}}</text>
 </view>
 
-<!-- 6 个通道卡片：电压蓝青光、电流橙光，一眼区分 -->
-<view class="box-list">
-  <view
-    wx:for="{{items}}"
-    wx:key="name"
-    class="box {{item.type === '电压' ? 'box-v' : ''}} {{item.type === '电流' ? 'box-a' : ''}}"
-  >
-    <view class="box-head">
-      <text class="box-name">{{item.name}}</text>
-      <text wx:if="{{item.unit}}" class="tag {{item.type === '电压' ? 'tag-v' : 'tag-a'}}">{{item.type}}</text>
+<!-- 6 个通道卡片：每张卡两行，上电压（蓝）下电流（橙） -->
+<view class="box-list {{stale ? 'stale' : ''}}">
+  <view wx:for="{{items}}" wx:key="name" class="box">
+    <view class="box-name">{{item.name}}</view>
+
+    <!-- 电压行 -->
+    <view class="row">
+      <text class="row-label label-v">电压</text>
+      <view class="row-value value-v">{{item.v}}<text class="row-unit">V</text></view>
     </view>
-    <!-- 框里的数值：220.50 V，单位小一号跟在后面；没数据时灰色暗淡 -->
-    <view class="box-value {{item.unit ? '' : 'value-empty'}}">
-      {{item.value}}<text wx:if="{{item.unit}}" class="box-unit">{{item.unit}}</text>
+
+    <!-- 电流行 -->
+    <view class="row">
+      <text class="row-label label-a">电流</text>
+      <view class="row-value value-a">{{item.i}}<text class="row-unit">A</text></view>
     </view>
-    <!-- 卡片底部的光条：按类型着色，呼应顶边 -->
-    <view class="box-bar {{item.type === '电压' ? 'bar-v' : ''}} {{item.type === '电流' ? 'bar-a' : ''}}"></view>
   </view>
 </view>
 
 <!-- 连上了但还没收到任何数据时的提示 -->
 <view wx:if="{{connected && !hasData}}" class="hint">已连接，等待设备上报数据……</view>
+
+<!-- 设备离线提示：超过10秒没收到新数据 -->
+<view wx:if="{{stale}}" class="hint hint-warn">超过 10 秒未收到数据，请检查单片机是否在线</view>
 
 <!-- 连接按钮：连上后自动变灰，提示不用再点 -->
 <button class="btn {{connected ? 'btn-gray' : ''}}" hover-class="btn-hover" bindtap="onConnect">{{connected ? '已连接' : '点击连接'}}</button>

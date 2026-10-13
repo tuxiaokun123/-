@@ -1,9 +1,9 @@
-/* 房间装修：浅青绿清新风 —— 浅色渐变底 + 白卡片 + 清爽配色 */
+/* 房间装修：浅青绿清新风 —— 每卡两行：上电压（蓝）下电流（橙） */
 
 /* ===== 主色调板 =====
    页面底色  #e3f6f3 → #e9f7ef（浅青 → 浅绿渐变）
    电压蓝   #1f6feb
-   电流橙   #ea580c / #f59e0b
+   电流橙   #ea580c
    成功绿   #16a34a
    ============================================ */
 
@@ -94,7 +94,7 @@
   color: #8aa39e;
 }
 
-/* ===== 6 个通道卡片 ===== */
+/* ===== 6 个通道卡片：每张卡两行读数 ===== */
 
 /* 排排坐：一行放 2 个，放不下自动换行 */
 .box-list {
@@ -105,112 +105,84 @@
 
 /* 每个数值卡片：白底圆角，浅色描边 */
 .box {
-  position: relative;
   width: calc(50% - 10rpx);     /* 约占一半宽，中间留条缝 */
   margin-bottom: 20rpx;
   background-color: #ffffff;
   border: 1rpx solid rgba(15, 76, 70, 0.06);
   border-radius: 24rpx;
-  padding: 28rpx 20rpx 32rpx;
+  padding: 24rpx 20rpx 28rpx;
   box-sizing: border-box;
-  text-align: center;
   box-shadow: 0 6rpx 16rpx rgba(15, 76, 70, 0.06);
-  overflow: hidden;             /* 让底部光条贴着卡片圆角 */
 }
 
-/* 电压卡片：顶部一层淡蓝晕染 */
-.box-v {
-  border-color: rgba(31, 111, 235, 0.22);
-  background: linear-gradient(180deg, #eef6ff 0%, #ffffff 55%);
-}
-
-/* 电流卡片：顶部一层淡橙晕染 */
-.box-a {
-  border-color: rgba(245, 158, 11, 0.25);
-  background: linear-gradient(180deg, #fff7ea 0%, #ffffff 55%);
-}
-
-/* 卡片头：通道名 + 类型标签 */
-.box-head {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 通道名 */
+/* 通道名：卡片顶部居中 */
 .box-name {
   font-size: 26rpx;
-  color: #6b7f7b;
+  color: #0f4c46;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12rpx;
 }
 
-/* 类型小标签（电压/电流）：一粒小胶囊 */
-.tag {
-  margin-left: 12rpx;
-  font-size: 20rpx;
-  padding: 4rpx 16rpx;
+/* 一行读数：左边小标签，右边数值+单位 */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6rpx 8rpx;
+}
+
+/* 行标签（电压/电流）：一粒小胶囊 */
+.row-label {
+  font-size: 22rpx;
+  padding: 4rpx 14rpx;
   border-radius: 999rpx;
+  flex-shrink: 0;
 }
 
-.tag-v {
+.label-v {
   color: #1f6feb;
   background-color: rgba(31, 111, 235, 0.1);
-  border: 1rpx solid rgba(31, 111, 235, 0.25);
+  border: 1rpx solid rgba(31, 111, 235, 0.22);
 }
 
-.tag-a {
+.label-a {
   color: #ea580c;
   background-color: rgba(245, 158, 11, 0.12);
   border: 1rpx solid rgba(245, 158, 11, 0.3);
 }
 
-/* 卡片里的大数值 */
-.box-value {
-  font-size: 56rpx;
+/* 行数值：右对齐，等宽感更强 */
+.row-value {
+  font-size: 42rpx;
   font-weight: bold;
-  color: #334155;
-  margin-top: 12rpx;
+  flex: 1;
+  text-align: right;
+  margin-right: 4rpx;
 }
 
-/* 没数据的占位 "--"：浅灰，别抢戏 */
-.value-empty {
-  color: #b6c4c0;
-}
-
-/* 电压的数值：饱和蓝，浅底上够醒目 */
-.box-v .box-value {
+/* 电压读数：蓝 */
+.value-v {
   color: #1f6feb;
 }
 
-/* 电流的数值：饱和橙 */
-.box-a .box-value {
+/* 电流读数：橙 */
+.value-a {
   color: #ea580c;
 }
 
 /* 单位：小一号、淡一点，跟在数值后面 */
-.box-unit {
-  font-size: 28rpx;
+.row-unit {
+  font-size: 22rpx;
   font-weight: normal;
   color: #94a3b8;
   margin-left: 6rpx;
 }
 
-/* 卡片底部光条：默认暗线，有数据后按类型点亮 */
-.box-bar {
-  position: absolute;
-  left: 28rpx;
-  right: 28rpx;
-  bottom: 16rpx;
-  height: 4rpx;
-  border-radius: 999rpx;
-  background: rgba(15, 76, 70, 0.08);
-}
-
-.bar-v {
-  background: linear-gradient(90deg, transparent, #38bdf8, transparent);
-}
-
-.bar-a {
-  background: linear-gradient(90deg, transparent, #fb923c, transparent);
+/* 设备疑似离线时：6 张卡整体变淡，提示"数据不可信" */
+.stale .box {
+  opacity: 0.45;
+  transition: opacity 0.4s;
 }
 
 /* "等待设备上报数据……"提示：居中灰字 */
@@ -219,6 +191,11 @@
   font-size: 26rpx;
   color: #748f8a;
   margin: 4rpx 0 8rpx;
+}
+
+/* 设备离线的警示提示：橙色 */
+.hint-warn {
+  color: #ea580c;
 }
 
 /* ===== 按钮 ===== */
@@ -275,7 +252,7 @@
   margin-right: 16rpx;
 }
 
-/* 关灯：白底描边幽灵按钮，像灯灭着；浅色底上字也要深色 */
+/* 关灯：白底描边幽灵按钮，像灯灭着 */
 .btn-off {
   background-color: #ffffff;
   border: 1rpx solid rgba(15, 76, 70, 0.25);
