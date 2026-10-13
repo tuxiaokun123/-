@@ -3,23 +3,34 @@
 <view class="page">
 
 <!-- 大标题 -->
-<view class="title">通道数据看板</view>
+<view class="title">六路采集看板</view>
 
-<!-- 连接状态一行字：连上了会变绿 -->
-<view class="status {{connected ? 'ok' : ''}}">{{statusText}}</view>
+<!-- 连接状态：小圆点 + 文字，连上后圆点变绿 -->
+<view class="status">
+  <view class="dot {{connected ? 'dot-ok' : ''}}"></view>
+  <text class="{{connected ? 'text-ok' : ''}}">{{statusText}}</text>
+</view>
 
-<!-- 6 个通道框：照着记事本里的名单，一个一个摆出来 -->
+<!-- 6 个通道卡片：电压蓝顶边、电流橙顶边，一眼区分 -->
 <view class="box-list">
-  <view class="box" wx:for="{{items}}" wx:key="name">
-    <!-- 框上的名字：通道1 · 电压（没数据时显示"通道1 · --"） -->
-    <view class="box-name">{{item.name}} · {{item.type}}</view>
-    <!-- 框里的数值：220.50 V -->
-    <view class="box-value">{{item.value}}{{item.unit}}</view>
+  <view
+    wx:for="{{items}}"
+    wx:key="name"
+    class="box {{item.type === '电压' ? 'box-v' : ''}} {{item.type === '电流' ? 'box-a' : ''}}"
+  >
+    <view class="box-head">
+      <text class="box-name">{{item.name}}</text>
+      <text wx:if="{{item.unit}}" class="tag {{item.type === '电压' ? 'tag-v' : 'tag-a'}}">{{item.type}}</text>
+    </view>
+    <!-- 框里的数值：220.50 V，单位小一号跟在后面 -->
+    <view class="box-value">
+      {{item.value}}<text wx:if="{{item.unit}}" class="box-unit">{{item.unit}}</text>
+    </view>
   </view>
 </view>
 
-<!-- 门铃按钮：用户一点，就喊 index.ts 里的 onConnect -->
-<button class="btn" bindtap="onConnect" style="position: relative; left: -1rpx; top: 0rpx">点击连接</button>
+<!-- 连接按钮：连上后自动变灰，提示不用再点 -->
+<button class="btn {{connected ? 'btn-gray' : ''}}" bindtap="onConnect">{{connected ? '已连接' : '点击连接'}}</button>
 
 <!-- 开灯 / 关灯：一左一右两个按钮 -->
 <view class="btn-row">

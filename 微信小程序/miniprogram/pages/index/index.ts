@@ -6,8 +6,9 @@ import mqtt from '../index/mqtt.min.js'
 let mqttClient: any = null
 
 // 要订阅的主题（以后想换主题，只改这一行）
-//主题要不一致
-const TOPIC = 'text12'
+// 注意：小程序和设备端必须用同一个主题，改这里的话设备固件也要同步改
+// 公共服务器人很多，主题名要起得独特一点，避免和别人撞车收到别人的数据
+const TOPIC = 'vc6_collector_001'
 
 Component({
   data: {
