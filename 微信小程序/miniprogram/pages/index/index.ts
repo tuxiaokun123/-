@@ -6,11 +6,10 @@ import mqtt from '../index/mqtt.min.js'
 let mqttClient: any = null
 
 // 备选服务器列表：从上往下挨个试，连不上自动换下一个
-// （公共服务器免费但不稳定，多备几条线路，谁能通用谁）
+// 目前只用 EMQX 一台；想加备用线路，往数组里添一行就行，例如：
+//   'wxs://broker.hivemq.com:8884/mqtt',
 const BROKER_LIST = [
-  'wxs://broker.hivemq.com:8884/mqtt',
   'wxs://broker.emqx.io:8084/mqtt',
-  'wxs://mqtt.eclipseprojects.io:443/mqtt',
 ]
 
 // 要订阅的主题（以后想换主题，只改这一行）

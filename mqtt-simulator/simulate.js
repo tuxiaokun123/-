@@ -22,9 +22,7 @@ const mqtt = require('mqtt')
 
 // 和小程序 index.ts 里的 BROKER_LIST 对应（小程序用 wxs://，普通程序用 wss://）
 const BROKERS = [
-  'wss://broker.hivemq.com:8884/mqtt',
   'wss://broker.emqx.io:8084/mqtt',
-  'wss://mqtt.eclipseprojects.io:443/mqtt',
 ]
 const TOPIC = 'vc6_collector_001'
 
