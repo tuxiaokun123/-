@@ -1,0 +1,30 @@
+<!-- 页面骨架：页面长什么样、摆什么东西，都在这 -->
+
+<view class="page">
+
+<!-- 大标题 -->
+<view class="title">通道数据看板</view>
+
+<!-- 连接状态一行字：连上了会变绿 -->
+<view class="status {{connected ? 'ok' : ''}}">{{statusText}}</view>
+
+<!-- 6 个通道框：照着记事本里的名单，一个一个摆出来 -->
+<view class="box-list">
+  <view class="box" wx:for="{{items}}" wx:key="name">
+    <!-- 框上的名字：通道1 · 电压（没数据时显示"通道1 · --"） -->
+    <view class="box-name">{{item.name}} · {{item.type}}</view>
+    <!-- 框里的数值：220.50 V -->
+    <view class="box-value">{{item.value}}{{item.unit}}</view>
+  </view>
+</view>
+
+<!-- 门铃按钮：用户一点，就喊 index.ts 里的 onConnect -->
+<button class="btn" bindtap="onConnect" style="position: relative; left: -1rpx; top: 0rpx">点击连接</button>
+
+<!-- 开灯 / 关灯：一左一右两个按钮 -->
+<view class="btn-row">
+  <button class="btn btn-on" bindtap="turnOn">打开报警灯</button>
+  <button class="btn btn-off" bindtap="turnOff">关闭报警灯</button>
+</view>
+
+</view>
