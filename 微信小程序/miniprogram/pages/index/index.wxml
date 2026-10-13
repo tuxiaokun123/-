@@ -5,10 +5,13 @@
 <!-- 大标题 -->
 <view class="title">六路采集看板</view>
 
-<!-- 连接状态：小圆点 + 文字，连上后圆点变绿 -->
-<view class="status">
-  <view class="dot {{connected ? 'dot-ok' : ''}}"></view>
-  <text class="{{connected ? 'text-ok' : ''}}">{{statusText}}</text>
+<!-- 状态卡片：左边连接状态（小圆点+文字），右边最后收到数据的时间 -->
+<view class="status-card">
+  <view class="status-left">
+    <view class="dot {{connected ? 'dot-ok' : ''}}"></view>
+    <text class="status-text {{connected ? 'text-ok' : ''}}">{{statusText}}</text>
+  </view>
+  <text wx:if="{{lastUpdate}}" class="status-time">更新 {{lastUpdate}}</text>
 </view>
 
 <!-- 6 个通道卡片：电压蓝顶边、电流橙顶边，一眼区分 -->
@@ -29,13 +32,16 @@
   </view>
 </view>
 
-<!-- 连接按钮：连上后自动变灰，提示不用再点 -->
-<button class="btn {{connected ? 'btn-gray' : ''}}" bindtap="onConnect">{{connected ? '已连接' : '点击连接'}}</button>
+<!-- 连上了但还没收到任何数据时的提示 -->
+<view wx:if="{{connected && !hasData}}" class="hint">已连接，等待设备上报数据……</view>
 
-<!-- 开灯 / 关灯：一左一右两个按钮 -->
+<!-- 连接按钮：连上后自动变灰，提示不用再点 -->
+<button class="btn {{connected ? 'btn-gray' : ''}}" hover-class="btn-hover" bindtap="onConnect">{{connected ? '已连接' : '点击连接'}}</button>
+
+<!-- 开灯 / 关灯：一左一右两个按钮，没连上时整块变灰提醒 -->
 <view class="btn-row">
-  <button class="btn btn-on" bindtap="turnOn">打开报警灯</button>
-  <button class="btn btn-off" bindtap="turnOff">关闭报警灯</button>
+  <button class="btn btn-on {{!connected ? 'btn-disabled' : ''}}" hover-class="btn-hover" bindtap="turnOn">打开报警灯</button>
+  <button class="btn btn-off {{!connected ? 'btn-disabled' : ''}}" hover-class="btn-hover" bindtap="turnOff">关闭报警灯</button>
 </view>
 
 </view>

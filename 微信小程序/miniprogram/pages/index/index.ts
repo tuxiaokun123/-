@@ -25,17 +25,20 @@ let connectAttempt = 0
 Component({
   data: {
     // 记事本：6 个通道，type 是"电压/电流"，value 是显示的数字，unit 是单位
+    // 还没收到数据时 value 显示 "--"
     items: [
-      { name: '通道1', type: '--', value: '0.00', unit: '' },
-      { name: '通道2', type: '--', value: '0.00', unit: '' },
-      { name: '通道3', type: '--', value: '0.00', unit: '' },
-      { name: '通道4', type: '--', value: '0.00', unit: '' },
-      { name: '通道5', type: '--', value: '0.00', unit: '' },
-      { name: '通道6', type: '--', value: '0.00', unit: '' },
+      { name: '通道1', type: '--', value: '--', unit: '' },
+      { name: '通道2', type: '--', value: '--', unit: '' },
+      { name: '通道3', type: '--', value: '--', unit: '' },
+      { name: '通道4', type: '--', value: '--', unit: '' },
+      { name: '通道5', type: '--', value: '--', unit: '' },
+      { name: '通道6', type: '--', value: '--', unit: '' },
     ],
     // 连接状态：一开始显示"未连接"
     statusText: '未连接',
     connected: false,   // 记着：连没连上
+    hasData: false,     // 记着：收到过数据帧没有（控制"等待数据"提示的显示）
+    lastUpdate: '',     // 最后一次收到数据的时间（显示在状态卡片右上角）
   },
   methods: {
     // 门铃响（点击"点击连接"按钮）时要做的事
@@ -157,37 +160,48 @@ Component({
     },
 
     // 把收到的消息翻译成 6 个通道要显示的数字
+    // 新格式（JSON 一帧全量）：一条消息带全部 6 个通道，一次刷新整个看板
+    //   {"dev":"vc6_001","ch":[{"n":1,"t":"V","val":220.50},{"n":2,"t":"V","val":53.00},...]}
+    //     n   = 通道号 1~6
+    //     t   = 类型："V"=电压，"A"=电流
+    //     val = 真实数值（直接发小数，不用再乘除 100）
     handleMessage(msg: string) {
       // 去掉头尾的空格和换行（设备发完数据常带个回车）
       msg = msg.trim()
 
-      // 消息长这样："11:22050"
-      //   第1个字符：1=电压，0=电流
-      //   第2个字符：通道号（1~6）
-      //   冒号后面：整数，除以100才是真实数值
-      const parts = msg.split(':')
-      if (parts.length !== 2) return          // 格式不对，就不理它
-      if (parts[0].length < 2) return         // 前面至少要有2个字符
+      // 先把消息当成 JSON 试着翻译一下，翻不动就说明不是我们的数据，不理它
+      let frame: any
+      try {
+        frame = JSON.parse(msg)
+      } catch (e) {
+        return
+      }
+      // 必须是对象、且带 ch 数组才算合法数据帧
+      // （开灯/关灯指令 "1"/"0" 会被 JSON.parse 翻译成数字，在这里被挡住）
+      if (!frame || typeof frame !== 'object' || !Array.isArray(frame.ch)) return
 
-      const typeCode = parts[0].charAt(0)         // 第1个字符
-      const channel = Number(parts[0].charAt(1))  // 第2个字符（通道号）
-      const raw = Number(parts[1])                // 冒号后面的整数
+      // 抄一份记事本，把这帧里的通道一个个填进去
+      const items = this.data.items.slice()
+      for (const c of frame.ch) {
+        const n = Number(c.n)      // 通道号
+        const val = Number(c.val) // 数值
+        if (n < 1 || n > 6 || isNaN(val)) continue   // 通道号不对、数值无效就跳过
+        const isVoltage = c.t === 'V'                 // "V"=电压，其他=电流
+        items[n - 1] = {
+          name: '通道' + n,
+          type: isVoltage ? '电压' : '电流',
+          value: val.toFixed(2),   // 保留 2 位小数
+          unit: isVoltage ? 'V' : 'A',
+        }
+      }
 
-      // 通道号必须在 1~6 之间、数字必须有效，否则不理它
-      if (channel < 1 || channel > 6 || isNaN(raw)) return
+      // 记下几点几分几秒收到的这帧数据，显示在状态卡片右上角
+      const now = new Date()
+      const pad = (x: number) => (x < 10 ? '0' + x : '' + x)
+      const lastUpdate =
+        pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds())
 
-      const isVoltage = typeCode === '1'
-      const typeName = isVoltage ? '电压' : '电流'
-      const unit = isVoltage ? 'V' : 'A'
-      const value = (raw / 100).toFixed(2)    // 除以100，保留2位小数
-
-      // 只改对应那个通道（记事本里的第 channel 个兄弟）
-      const key = 'items[' + (channel - 1) + ']'
-      this.setData({
-        [key + '.value']: value,
-        [key + '.type']: typeName,
-        [key + '.unit']: unit,
-      })
+      this.setData({ items, lastUpdate, hasData: true })
     },
 
     // 开灯：向主题发 1

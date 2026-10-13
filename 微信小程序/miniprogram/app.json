@@ -4,9 +4,9 @@
     "pages/logs/logs"
   ],
   "window": {
-    "navigationBarTextStyle": "black",
+    "navigationBarTextStyle": "white",
     "navigationBarTitleText": "六路电压电流采集器",
-    "navigationBarBackgroundColor": "#ffffff"
+    "navigationBarBackgroundColor": "#1f6feb"
   },
   "style": "v2",
   "componentFramework": "glass-easel",

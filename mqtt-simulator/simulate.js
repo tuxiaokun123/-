@@ -1,6 +1,12 @@
 // 六路采集器数据模拟器：循环向所有备选 MQTT 服务器发送 6 个通道的模拟数据
 // 用来在没有真实设备时测试小程序看板。
 //
+// 数据格式（JSON 一帧全量）：一条消息带全部 6 个通道，一次刷新整个看板
+//   {"dev":"vc6_001","ch":[{"n":1,"t":"V","val":220.50},{"n":2,"t":"V","val":53.00},...]}
+//     n   = 通道号 1~6
+//     t   = 类型："V"=电压，"A"=电流
+//     val = 真实数值（直接发小数，不用乘 100）
+//
 // 用法（在自己电脑上）：
 //   1. 安装 Node.js：https://nodejs.org
 //   2. 在本文件夹打开命令行，执行：npm install mqtt
@@ -22,18 +28,14 @@ const BROKERS = [
 ]
 const TOPIC = 'vc6_collector_001'
 
-// 6 个通道的基准值，发送时在 ±2% 内随机波动
-// 消息格式："类型+通道号:数值x100"
-//   第 1 位：1=电压，0=电流
-//   第 2 位：通道号 1~6
-//   冒号后：真实值 x 100（例 22000 -> 220.00V）
+// 6 个通道：n=通道号，t=类型(V电压/A电流)，base=基准值（发送时 ±2% 波动）
 const channels = [
-  { ch: 1, type: '1', base: 22000 },  // 通道1 电压 基准 220.00 V
-  { ch: 2, type: '1', base: 5300 },   // 通道2 电压 基准 53.00 V
-  { ch: 3, type: '1', base: 12100 },  // 通道3 电压 基准 121.00 V
-  { ch: 4, type: '0', base: 1520 },   // 通道4 电流 基准 15.20 A
-  { ch: 5, type: '0', base: 230 },    // 通道5 电流 基准 2.30 A
-  { ch: 6, type: '0', base: 875 },    // 通道6 电流 基准 8.75 A
+  { n: 1, t: 'V', base: 220.0 },   // 通道1 电压 基准 220.00 V
+  { n: 2, t: 'V', base: 53.0 },    // 通道2 电压 基准 53.00 V
+  { n: 3, t: 'V', base: 121.0 },   // 通道3 电压 基准 121.00 V
+  { n: 4, t: 'A', base: 15.2 },    // 通道4 电流 基准 15.20 A
+  { n: 5, t: 'A', base: 2.3 },     // 通道5 电流 基准 2.30 A
+  { n: 6, t: 'A', base: 8.75 },    // 通道6 电流 基准 8.75 A
 ]
 
 const shortName = (u) => u.split('//')[1].split(':')[0]
@@ -53,19 +55,23 @@ for (const url of BROKERS) {
     if (timer) return   // 断线重连时不重复开定时器
     const sendRound = () => {
       round++
-      for (const c of channels) {
-        const jitter = Math.round(c.base * (0.98 + Math.random() * 0.04))
-        const msg = `${c.type}${c.ch}:${jitter}`
-        client.publish(TOPIC, msg, { retain: true }) // retain：新连上的订阅者立刻能收到
+      const frame = {
+        dev: 'vc6_collector_001',
+        ch: channels.map(c => {
+          const val = +(c.base * (0.98 + Math.random() * 0.04)).toFixed(2)  // ±2% 波动
+          return { n: c.n, t: c.t, val }
+        }),
       }
-      console.log(`[${shortName(url)}] 第${round}轮已发`)
+      const msg = JSON.stringify(frame)
+      client.publish(TOPIC, msg, { retain: true }) // retain：新连上的订阅者立刻能收到
+      console.log(`[${shortName(url)}] 第${round}帧 ${msg}`)
     }
     sendRound()
     timer = setInterval(sendRound, 2000)
   })
 
   client.on('error', (e) => {
-    console.log(`[${shortName(url)}] 出错：`, e.message, '（10秒后自动重试）')
+    console.log(`[${shortName(url)}] 出错：`, e.message)
   })
 
   client.on('close', () => {

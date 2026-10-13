@@ -16,14 +16,22 @@
   margin: 20rpx 0 24rpx;
 }
 
-/* 连接状态行：小圆点 + 文字，居中排排坐 */
-.status {
+/* ===== 状态卡片：白底圆角，装着连接状态和更新时间 ===== */
+.status-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
-  color: #888888;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  padding: 24rpx 28rpx;
   margin-bottom: 30rpx;
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 左半边：圆点 + 状态文字，排排坐 */
+.status-left {
+  display: flex;
+  align-items: center;
 }
 
 /* 状态小圆点：没连上是灰色 */
@@ -33,6 +41,7 @@
   border-radius: 50%;
   background-color: #c0c4cc;
   margin-right: 12rpx;
+  flex-shrink: 0;
 }
 
 /* 连上后圆点变绿、微微发光 */
@@ -41,13 +50,27 @@
   box-shadow: 0 0 12rpx rgba(82, 196, 26, 0.7);
 }
 
+/* 状态文字 */
+.status-text {
+  font-size: 28rpx;
+  color: #888888;
+}
+
 /* 连上后文字变绿、加粗 */
 .text-ok {
   color: #52c41a;
   font-weight: bold;
 }
 
-/* 6 个卡片排排坐：一行放 2 个，放不下自动换行 */
+/* 右上角：最后更新时间，淡一点小一号 */
+.status-time {
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+/* ===== 6 个通道卡片 ===== */
+
+/* 排排坐：一行放 2 个，放不下自动换行 */
 .box-list {
   display: flex;
   flex-wrap: wrap;
@@ -135,6 +158,16 @@
   margin-left: 6rpx;
 }
 
+/* "等待设备上报数据……"提示：居中灰字 */
+.hint {
+  text-align: center;
+  font-size: 26rpx;
+  color: #9ca3af;
+  margin: 4rpx 0 8rpx;
+}
+
+/* ===== 按钮 ===== */
+
 /* 按钮通用样式：胶囊形 */
 .btn {
   margin-top: 40rpx;
@@ -145,9 +178,20 @@
   padding: 20rpx 0;
 }
 
+/* 按下去的瞬间：轻轻缩小变透明，手感反馈 */
+.btn-hover {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
+
 /* 已连接后按钮变灰，提示不用再点 */
 .btn-gray {
   background-color: #9ca3af;
+}
+
+/* 没连上时，开灯/关灯按钮整个变淡，提示暂时不可用 */
+.btn-disabled {
+  opacity: 0.4;
 }
 
 /* 去掉微信按钮自带的灰色描边 */
