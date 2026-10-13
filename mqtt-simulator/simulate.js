@@ -1,4 +1,4 @@
-// 六路采集器数据模拟器：循环向 MQTT 服务器发送 6 个通道的模拟数据
+// 六路采集器数据模拟器：循环向所有备选 MQTT 服务器发送 6 个通道的模拟数据
 // 用来在没有真实设备时测试小程序看板。
 //
 // 用法（在自己电脑上）：
@@ -8,10 +8,18 @@
 //   4. 小程序里点"点击连接"，即可看到 6 个通道的数字每 2 秒跳动一次
 //   5. 按 Ctrl+C 停止
 //
-// 注意：TOPIC 必须和小程序 pages/index/index.ts 里的 TOPIC 完全一致
+// 注意：
+//   - TOPIC 必须和小程序 pages/index/index.ts 里的 TOPIC 完全一致
+//   - 服务器列表要和小程序里的 BROKER_LIST 保持一致（小程序连上哪条线，
+//     就得保证那条线上有人发数据）
 const mqtt = require('mqtt')
 
-const BROKER = 'wss://broker.emqx.io:8084/mqtt'
+// 和小程序 index.ts 里的 BROKER_LIST 对应（小程序用 wxs://，普通程序用 wss://）
+const BROKERS = [
+  'wss://broker.hivemq.com:8884/mqtt',
+  'wss://broker.emqx.io:8084/mqtt',
+  'wss://mqtt.eclipseprojects.io:443/mqtt',
+]
 const TOPIC = 'vc6_collector_001'
 
 // 6 个通道的基准值，发送时在 ±2% 内随机波动
@@ -28,35 +36,41 @@ const channels = [
   { ch: 6, type: '0', base: 875 },    // 通道6 电流 基准 8.75 A
 ]
 
-const client = mqtt.connect(BROKER, {
-  clientId: 'sim_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
-  clean: true,
-  connectTimeout: 8000,
-})
+const shortName = (u) => u.split('//')[1].split(':')[0]
 
-client.on('connect', () => {
-  console.log('已连接服务器，开始每 2 秒发送一轮数据（Ctrl+C 停止）')
-  const sendRound = () => {
-    for (const c of channels) {
-      const jitter = Math.round(c.base * (0.98 + Math.random() * 0.04))
-      const msg = `${c.type}${c.ch}:${jitter}`
-      client.publish(TOPIC, msg)
-      console.log('发送:', msg)
+for (const url of BROKERS) {
+  const client = mqtt.connect(url, {
+    clientId: 'sim_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+    clean: true,
+    connectTimeout: 8000,
+    keepalive: 30,
+  })
+  let timer = null
+  let round = 0
+
+  client.on('connect', () => {
+    console.log(`[${shortName(url)}] 已连接，开始每 2 秒发一轮数据`)
+    if (timer) return   // 断线重连时不重复开定时器
+    const sendRound = () => {
+      round++
+      for (const c of channels) {
+        const jitter = Math.round(c.base * (0.98 + Math.random() * 0.04))
+        const msg = `${c.type}${c.ch}:${jitter}`
+        client.publish(TOPIC, msg, { retain: true }) // retain：新连上的订阅者立刻能收到
+      }
+      console.log(`[${shortName(url)}] 第${round}轮已发`)
     }
-    console.log('---')
-  }
-  sendRound()
-  setInterval(sendRound, 2000)
-})
+    sendRound()
+    timer = setInterval(sendRound, 2000)
+  })
 
-client.on('error', (e) => {
-  console.error('连接失败：', e.message)
-  process.exit(1)
-})
+  client.on('error', (e) => {
+    console.log(`[${shortName(url)}] 出错：`, e.message, '（10秒后自动重试）')
+  })
 
-// 想清掉服务器上残留的保留消息时，取消下面几行注释运行一次即可：
-// client.on('connect', () => {
-//   client.publish(TOPIC, '', { retain: true })
-//   console.log('已清除保留消息')
-//   client.end()
-// })
+  client.on('close', () => {
+    console.log(`[${shortName(url)}] 连接断开，自动重连中……`)
+  })
+}
+
+console.log('模拟器已启动，按 Ctrl+C 停止')

@@ -5,10 +5,22 @@ import mqtt from '../index/mqtt.min.js'
 //mqttclient
 let mqttClient: any = null
 
+// 备选服务器列表：从上往下挨个试，连不上自动换下一个
+// （公共服务器免费但不稳定，多备几条线路，谁能通用谁）
+const BROKER_LIST = [
+  'wxs://broker.hivemq.com:8884/mqtt',
+  'wxs://broker.emqx.io:8084/mqtt',
+  'wxs://mqtt.eclipseprojects.io:443/mqtt',
+]
+
 // 要订阅的主题（以后想换主题，只改这一行）
 // 注意：小程序和设备端必须用同一个主题，改这里的话设备固件也要同步改
 // 公共服务器人很多，主题名要起得独特一点，避免和别人撞车收到别人的数据
 const TOPIC = 'vc6_collector_001'
+
+// 连接尝试的编号：只有"最新一次尝试"才有资格改页面状态，
+// 防止上一次失败连接的迟到事件跑出来捣乱
+let connectAttempt = 0
 
 Component({
   data: {
@@ -33,25 +45,57 @@ Component({
         this.setData({ statusText: '已经连上了' })
         return
       }
+      connectAttempt = 0        // 从头开始试线路
+      this.tryConnect()
+    },
 
-      this.setData({ statusText: '正在连接……' })
+    // 挨个试服务器列表里的线路，哪条通用哪条
+    tryConnect() {
+      // 全试完了还没连上：如实汇报，不再硬试
+      if (connectAttempt >= BROKER_LIST.length) {
+        this.setData({ statusText: '连接失败：所有线路都试过了，请检查网络' })
+        return
+      }
+
+      const attempt = ++connectAttempt                 // 本次尝试的编号
+      const url = BROKER_LIST[attempt - 1]             // 这次要试的服务器
+      const isStale = () => attempt !== connectAttempt  // 是不是"过期的尝试"
+
+      this.setData({
+        statusText: '正在连接……（线路 ' + attempt + '/' + BROKER_LIST.length + '）',
+      })
+      console.log('尝试连接服务器：', url)
 
       // 给自己起个不跟别人撞车的名字
       const clientId = 'wx_' + Date.now() + '_' + Math.floor(Math.random() * 10000)
 
-      // 开始连接公共 MQTT 服务器（微信小程序里 ws 要写成 wxs）
-      mqttClient = mqtt.connect('wxs://broker.emqx.io:8084/mqtt', {
+      // 开始连接（微信小程序里 ws 要写成 wxs）
+      const client = mqtt.connect(url, {
         clientId: clientId,
         clean: true,
-        connectTimeout: 8000,
+        connectTimeout: 5000,
       })
 
+      // 看门狗：万一底层卡死（连不上又不说一声），8 秒后强制换下一条线路
+      const watchdog = setTimeout(() => {
+        if (isStale()) return
+        console.log('连接超时，换下一条线路：', url)
+        client.end(true)
+        this.tryConnect()
+      }, 8000)
+
       // 连接成功的庆祝仪式
-      mqttClient.on('connect', () => {
-        this.setData({ connected: true, statusText: '连接成功！' })
+      client.on('connect', () => {
+        clearTimeout(watchdog)
+        if (isStale()) return
+        mqttClient = client   // 记下这个能用的连接，收消息/发指令都靠它
+        this.setData({
+          connected: true,
+          statusText: '连接成功！（线路 ' + attempt + '）',
+        })
 
         // 连接成功后，订阅主题，等着收设备发来的数据
-        mqttClient.subscribe(TOPIC, (err: any) => {
+        client.subscribe(TOPIC, (err: any) => {
           if (err) {
             console.log('订阅失败', err)
             this.setData({ statusText: '连接成功，但订阅失败' })
@@ -60,22 +104,36 @@ Component({
       })
 
       // 收到消息的仪式：设备一发数据，这里就被叫醒
-      mqttClient.on('message', (_topic: string, payload: any) => {
+      client.on('message', (_topic: string, payload: any) => {
+        if (isStale()) return
         // 先把收到的"任何样子的数据"翻译成一串字符，再交给翻译官
         this.handleMessage(this.bytesToString(payload))
       })
 
-      // 连接出错的安慰仪式
-      mqttClient.on('error', (err: any) => {
-        console.log('MQTT 出错啦', err)
-        this.setData({
-          statusText: '连接失败：' + (err && err.message ? err.message : '网络出问题了'),
-        })
+      // 连接出错的安慰仪式：还没连上就出错 → 自动换下一条线路
+      client.on('error', (err: any) => {
+        const msg = err && err.message ? err.message : '网络出问题了'
+        console.log('MQTT 出错：', url, msg)
+        clearTimeout(watchdog)
+        if (isStale()) return
+        if (this.data.connected) {
+          // 连上之后出错：直接提示，不换线路（mqtt.js 会自动重连）
+          this.setData({ statusText: '连接出错：' + msg })
+          return
+        }
+        client.end(true)      // 关掉这次失败的连接
+        this.tryConnect()     // 换下一条线路
       })
 
-      // 连接断开的提示
-      mqttClient.on('close', () => {
-        this.setData({ connected: false, statusText: '连接断开了' })
+      // 连接断开的提示：还没连上就断开 → 也自动换下一条线路
+      client.on('close', () => {
+        clearTimeout(watchdog)
+        if (isStale()) return
+        if (this.data.connected) {
+          this.setData({ connected: false, statusText: '连接断开了' })
+        } else {
+          this.tryConnect()
+        }
       })
     },
 
