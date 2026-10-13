@@ -6,7 +6,7 @@
   "window": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "六路电压电流采集器",
-    "navigationBarBackgroundColor": "#1f6feb"
+    "navigationBarBackgroundColor": "#0f172a"
   },
   "style": "v2",
   "componentFramework": "glass-easel",

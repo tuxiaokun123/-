@@ -2,8 +2,11 @@
 
 <view class="page">
 
-<!-- 大标题 -->
-<view class="title">六路采集看板</view>
+<!-- 标题区：大标题 + 小副标题 -->
+<view class="header">
+  <view class="title">六路采集看板</view>
+  <view class="subtitle">VOLTAGE / CURRENT MONITOR</view>
+</view>
 
 <!-- 状态卡片：左边连接状态（小圆点+文字），右边最后收到数据的时间 -->
 <view class="status-card">
@@ -14,7 +17,7 @@
   <text wx:if="{{lastUpdate}}" class="status-time">更新 {{lastUpdate}}</text>
 </view>
 
-<!-- 6 个通道卡片：电压蓝顶边、电流橙顶边，一眼区分 -->
+<!-- 6 个通道卡片：电压蓝青光、电流橙光，一眼区分 -->
 <view class="box-list">
   <view
     wx:for="{{items}}"
@@ -25,10 +28,12 @@
       <text class="box-name">{{item.name}}</text>
       <text wx:if="{{item.unit}}" class="tag {{item.type === '电压' ? 'tag-v' : 'tag-a'}}">{{item.type}}</text>
     </view>
-    <!-- 框里的数值：220.50 V，单位小一号跟在后面 -->
-    <view class="box-value">
+    <!-- 框里的数值：220.50 V，单位小一号跟在后面；没数据时灰色暗淡 -->
+    <view class="box-value {{item.unit ? '' : 'value-empty'}}">
       {{item.value}}<text wx:if="{{item.unit}}" class="box-unit">{{item.unit}}</text>
     </view>
+    <!-- 卡片底部的光条：按类型着色，呼应顶边 -->
+    <view class="box-bar {{item.type === '电压' ? 'bar-v' : ''}} {{item.type === '电流' ? 'bar-a' : ''}}"></view>
   </view>
 </view>
 

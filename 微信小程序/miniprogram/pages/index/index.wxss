@@ -1,31 +1,51 @@
-/* 房间装修：把上面的骨架打扮好看 */
+/* 房间装修：深色科技监控风 —— 深蓝渐变底 + 毛玻璃卡片 + 发光数据 */
 
-/* 整页：浅灰底色，四边留白 */
+/* ===== 主色调板 =====
+   深蓝底   #0f172a → #1e293b
+   电压蓝青 #38bdf8
+   电流橙   #fb923c
+   成功绿   #4ade80
+   ============================================ */
+
+/* 整页：深蓝渐变底，四边留白 */
 .page {
   padding: 30rpx;
-  background-color: #f2f4f8;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
   min-height: 100vh;
 }
 
-/* 大标题 */
+/* ===== 标题区 ===== */
+.header {
+  margin: 20rpx 0 30rpx;
+}
+
 .title {
   font-size: 44rpx;
   font-weight: bold;
   text-align: center;
-  color: #1f2937;
-  margin: 20rpx 0 24rpx;
+  color: #f1f5f9;
+  letter-spacing: 4rpx;
 }
 
-/* ===== 状态卡片：白底圆角，装着连接状态和更新时间 ===== */
+/* 副标题：小号淡字，拉开间距显精致 */
+.subtitle {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #64748b;
+  text-align: center;
+  letter-spacing: 8rpx;
+}
+
+/* ===== 状态卡片：毛玻璃质感 ===== */
 .status-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
   border-radius: 24rpx;
   padding: 24rpx 28rpx;
   margin-bottom: 30rpx;
-  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.05);
 }
 
 /* 左半边：圆点 + 状态文字，排排坐 */
@@ -34,38 +54,43 @@
   align-items: center;
 }
 
-/* 状态小圆点：没连上是灰色 */
+/* 状态小圆点：没连上是暗灰 */
 .dot {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background-color: #c0c4cc;
+  background-color: #475569;
   margin-right: 12rpx;
   flex-shrink: 0;
 }
 
-/* 连上后圆点变绿、微微发光 */
+/* 连上后圆点变绿、一呼一吸地发光（心跳动画） */
 .dot-ok {
-  background-color: #52c41a;
-  box-shadow: 0 0 12rpx rgba(82, 196, 26, 0.7);
+  background-color: #4ade80;
+  animation: breath 1.6s ease-in-out infinite;
+}
+
+@keyframes breath {
+  0%, 100% { box-shadow: 0 0 8rpx 2rpx rgba(74, 222, 128, 0.5); }
+  50%      { box-shadow: 0 0 24rpx 6rpx rgba(74, 222, 128, 0.8); }
 }
 
 /* 状态文字 */
 .status-text {
   font-size: 28rpx;
-  color: #888888;
+  color: #94a3b8;
 }
 
 /* 连上后文字变绿、加粗 */
 .text-ok {
-  color: #52c41a;
+  color: #4ade80;
   font-weight: bold;
 }
 
 /* 右上角：最后更新时间，淡一点小一号 */
 .status-time {
   font-size: 24rpx;
-  color: #9ca3af;
+  color: #64748b;
 }
 
 /* ===== 6 个通道卡片 ===== */
@@ -77,29 +102,30 @@
   justify-content: space-between;
 }
 
-/* 每个数值卡片 */
+/* 每个数值卡片：深色毛玻璃 + 细描边 */
 .box {
+  position: relative;
   width: calc(50% - 10rpx);     /* 约占一半宽，中间留条缝 */
   margin-bottom: 20rpx;
-  background-color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
   border-radius: 24rpx;
   padding: 28rpx 20rpx 32rpx;
   box-sizing: border-box;
   text-align: center;
-  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.05);
-  border-top: 8rpx solid #e5e7eb;  /* 顶边默认灰色，收到数据后按类型变色 */
+  overflow: hidden;             /* 让底部光条贴着卡片圆角 */
 }
 
-/* 电压卡片：蓝色顶边 + 淡蓝渐变底 */
+/* 电压卡片：蓝青光晕从内部透出来 */
 .box-v {
-  border-top-color: #1f6feb;
-  background: linear-gradient(180deg, #eef4ff 0%, #ffffff 45%);
+  border-color: rgba(56, 189, 248, 0.45);
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.14) 0%, rgba(255, 255, 255, 0.04) 55%);
 }
 
-/* 电流卡片：橙色顶边 + 淡橙渐变底 */
+/* 电流卡片：橙光晕从内部透出来 */
 .box-a {
-  border-top-color: #f5a623;
-  background: linear-gradient(180deg, #fff7ea 0%, #ffffff 45%);
+  border-color: rgba(251, 146, 60, 0.45);
+  background: linear-gradient(180deg, rgba(251, 146, 60, 0.14) 0%, rgba(255, 255, 255, 0.04) 55%);
 }
 
 /* 卡片头：通道名 + 类型标签 */
@@ -112,57 +138,87 @@
 /* 通道名 */
 .box-name {
   font-size: 26rpx;
-  color: #888888;
+  color: #94a3b8;
 }
 
-/* 类型小标签（电压/电流）：一粒小胶囊 */
+/* 类型小标签（电压/电流）：一粒发光小胶囊 */
 .tag {
   margin-left: 12rpx;
   font-size: 20rpx;
-  padding: 4rpx 14rpx;
+  padding: 4rpx 16rpx;
   border-radius: 999rpx;
-  color: #ffffff;
 }
 
 .tag-v {
-  background-color: #1f6feb;
+  color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.16);
+  border: 1rpx solid rgba(56, 189, 248, 0.35);
 }
 
 .tag-a {
-  background-color: #f5a623;
+  color: #fb923c;
+  background-color: rgba(251, 146, 60, 0.16);
+  border: 1rpx solid rgba(251, 146, 60, 0.35);
 }
 
 /* 卡片里的大数值 */
 .box-value {
   font-size: 56rpx;
   font-weight: bold;
-  color: #374151;
+  color: #e2e8f0;
   margin-top: 12rpx;
 }
 
-/* 电压的数值染成蓝色 */
-.box-v .box-value {
-  color: #1f6feb;
+/* 没数据的占位 "--"：暗灰，别抢戏 */
+.value-empty {
+  color: #475569;
 }
 
-/* 电流的数值染成橙色 */
+/* 电压的数值：蓝青色 + 微微发光 */
+.box-v .box-value {
+  color: #7dd3fc;
+  text-shadow: 0 0 16rpx rgba(56, 189, 248, 0.55);
+}
+
+/* 电流的数值：橙色 + 微微发光 */
 .box-a .box-value {
-  color: #f5a623;
+  color: #fdba74;
+  text-shadow: 0 0 16rpx rgba(251, 146, 60, 0.55);
 }
 
 /* 单位：小一号、淡一点，跟在数值后面 */
 .box-unit {
   font-size: 28rpx;
   font-weight: normal;
-  color: #9ca3af;
+  color: #64748b;
   margin-left: 6rpx;
+  text-shadow: none;
+}
+
+/* 卡片底部光条：默认暗线，有数据后按类型点亮 */
+.box-bar {
+  position: absolute;
+  left: 28rpx;
+  right: 28rpx;
+  bottom: 16rpx;
+  height: 4rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bar-v {
+  background: linear-gradient(90deg, transparent, #38bdf8, transparent);
+}
+
+.bar-a {
+  background: linear-gradient(90deg, transparent, #fb923c, transparent);
 }
 
 /* "等待设备上报数据……"提示：居中灰字 */
 .hint {
   text-align: center;
   font-size: 26rpx;
-  color: #9ca3af;
+  color: #64748b;
   margin: 4rpx 0 8rpx;
 }
 
@@ -171,11 +227,12 @@
 /* 按钮通用样式：胶囊形 */
 .btn {
   margin-top: 40rpx;
-  background-color: #1f6feb;
   color: #ffffff;
   border-radius: 999rpx;
   font-size: 32rpx;
   padding: 20rpx 0;
+  background: linear-gradient(90deg, #1f6feb, #38bdf8);
+  box-shadow: 0 8rpx 24rpx rgba(56, 189, 248, 0.3);
 }
 
 /* 按下去的瞬间：轻轻缩小变透明，手感反馈 */
@@ -186,12 +243,13 @@
 
 /* 已连接后按钮变灰，提示不用再点 */
 .btn-gray {
-  background-color: #9ca3af;
+  background: #334155;
+  box-shadow: none;
 }
 
 /* 没连上时，开灯/关灯按钮整个变淡，提示暂时不可用 */
 .btn-disabled {
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
 /* 去掉微信按钮自带的灰色描边 */
@@ -211,13 +269,16 @@
   margin-top: 0;
 }
 
-/* 开灯：橙色，像灯亮起来 */
+/* 开灯：橙色渐变，像灯亮起来 */
 .btn-on {
-  background-color: #f5a623;
+  background: linear-gradient(90deg, #f59e0b, #fb923c);
+  box-shadow: 0 8rpx 24rpx rgba(251, 146, 60, 0.3);
   margin-right: 16rpx;
 }
 
-/* 关灯：灰色，像灯灭着 */
+/* 关灯：深灰描边按钮，像灯灭着 */
 .btn-off {
-  background-color: #6b7280;
+  background: #1e293b;
+  border: 1rpx solid rgba(255, 255, 255, 0.18);
+  box-shadow: none;
 }
